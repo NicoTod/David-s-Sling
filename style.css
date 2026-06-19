@@ -1,0 +1,514 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: black;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Let clicks pass through to the canvas */
+    color: white;
+    text-shadow: 1px 1px 2px black;
+}
+
+#hud {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+#controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    pointer-events: auto; /* Allow interaction with dropdown */
+}
+
+#power-meter {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 20px;
+    border: 2px solid white;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#power-fill {
+    width: 0%;
+    height: 100%;
+    background-color: red;
+    transition: width 0.1s;
+}
+
+#health-bar {
+    margin-top: 8px;
+    width: 200px;
+    height: 16px;
+    border: 2px solid white;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#health-fill {
+    width: 100%;
+    height: 100%;
+    background-color: #4caf50;
+    transition: width 0.2s, background-color 0.2s;
+}
+
+#game-over-overlay {
+    display: none; /* shown via JS on game over */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+}
+
+#game-over-box {
+    text-align: center;
+    padding: 32px 48px;
+    border: 2px solid white;
+    background-color: rgba(20, 20, 20, 0.9);
+}
+
+#game-over-box h2 {
+    margin-top: 0;
+    color: #e53935;
+}
+
+.game-over-hint {
+    margin-top: 16px;
+    opacity: 0.7;
+    font-size: 0.9em;
+}
+/* ============================================================
+   INTRO / START SCREEN
+   Theme: dusk before the battle (a night sky fading into a warm
+   horizon) plus gold accents from an illuminated manuscript.
+   Title in Cinzel (lapidary capitals), body in EB Garamond.
+   Signature element: the verse with a gilded drop cap and rules.
+   ============================================================ */
+#intro-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    padding: 24px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    color: #efe6d2;
+    text-shadow: none;
+    background:
+        radial-gradient(ellipse at 50% 122%, rgba(214, 158, 92, 0.38), transparent 60%),
+        linear-gradient(180deg, #0a1430 0%, #142046 42%, #2c2c55 66%, #6b4a3a 100%);
+}
+
+#intro-card {
+    max-width: 600px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    padding: 40px 44px 36px;
+    border: 1px solid rgba(212, 175, 106, 0.45);
+    border-radius: 2px;
+    background: rgba(10, 14, 28, 0.55);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(0, 0, 0, 0.25);
+    animation: introRise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+#intro-card .intro-eyebrow {
+    margin: 0 0 10px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: #d4af6a;
+    text-shadow: none;
+}
+
+#intro-card .intro-title {
+    margin: 0 0 26px;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 6vw, 3.1rem);
+    line-height: 1.05;
+    letter-spacing: 0.06em;
+    color: #ecd9a8;
+    text-shadow: 0 2px 18px rgba(212, 175, 106, 0.25);
+}
+
+#intro-card .intro-scripture {
+    margin: 0 0 26px;
+    padding: 22px 6px;
+    border-top: 1px solid rgba(212, 175, 106, 0.4);
+    border-bottom: 1px solid rgba(212, 175, 106, 0.4);
+}
+
+#intro-card .scripture-text {
+    margin: 0;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(1.15rem, 2.6vw, 1.42rem);
+    line-height: 1.5;
+    color: #f3ead6;
+    text-shadow: none;
+}
+
+#intro-card .scripture-text::first-letter {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-style: normal;
+    font-size: 2.6em;
+    float: left;
+    line-height: 0.78;
+    padding: 6px 10px 0 0;
+    color: #d4af6a;
+}
+
+#intro-card .scripture-cite {
+    margin: 16px 0 0;
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #b89456;
+    text-shadow: none;
+}
+
+#intro-card .intro-story {
+    margin: 0 0 28px;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: clamp(1rem, 2.2vw, 1.12rem);
+    line-height: 1.6;
+    color: #d8ccb2;
+    text-shadow: none;
+}
+
+#intro-card .intro-rules {
+    text-align: left;
+    margin: 0 0 30px;
+}
+
+#intro-card .rules-heading {
+    margin: 0 0 12px;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #d4af6a;
+    text-align: center;
+    text-shadow: none;
+}
+
+#intro-card .intro-rules ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#intro-card .intro-rules li {
+    position: relative;
+    padding: 7px 0 7px 22px;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: clamp(0.98rem, 2vw, 1.08rem);
+    line-height: 1.45;
+    color: #e6dcc6;
+    text-shadow: none;
+}
+
+#intro-card .intro-rules li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #d4af6a;
+}
+
+#intro-card .rule-key {
+    color: #ecd9a8;
+    font-weight: 600;
+}
+
+#begin-button {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 1.02rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #1a1206;
+    background: linear-gradient(180deg, #e6c378 0%, #c99a45 100%);
+    border: none;
+    border-radius: 2px;
+    padding: 15px 38px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(201, 154, 69, 0.35);
+    transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+}
+
+#begin-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(201, 154, 69, 0.5);
+    filter: brightness(1.06);
+}
+
+#begin-button:focus-visible {
+    outline: 2px solid #f3ead6;
+    outline-offset: 3px;
+}
+
+@keyframes introRise {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #intro-card { animation: none; }
+    #begin-button { transition: none; }
+}
+
+/* ============================================================
+   FINAL BOSS (GOLIATH) + VICTORY SCREEN
+   Same gold/dark palette and fonts (Cinzel + EB Garamond) as the
+   intro and game over, for thematic consistency.
+   ============================================================ */
+#boss-ui {
+    display: none; /* shown via JS when Goliath appears */
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(520px, 70%);
+    text-align: center;
+    pointer-events: none;
+}
+#boss-label {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 5px;
+    font-size: 15px;
+    color: #e6c98a;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    margin-bottom: 6px;
+}
+#boss-bar {
+    height: 14px;
+    border: 1px solid rgba(212, 175, 106, 0.6);
+    border-radius: 2px;
+    background: rgba(20, 12, 6, 0.6);
+    overflow: hidden;
+}
+#boss-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #8f2222, #c0532a);
+    transition: width 0.3s;
+}
+#boss-msg {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 120px;
+    text-align: center;
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: #ffd98a;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+}
+
+#victory-overlay {
+    display: none; /* shown via JS on victory */
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    padding: 24px;
+    box-sizing: border-box;
+    color: #f3e6c6;
+    text-shadow: none;
+    background:
+        radial-gradient(ellipse at 50% 30%, rgba(214, 158, 92, 0.30), transparent 60%),
+        linear-gradient(180deg, #1a0d05 0%, #2a160a 45%, #3a2412 100%);
+}
+#victory-card {
+    max-width: 600px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    padding: 44px 46px 38px;
+    border: 1px solid rgba(212, 175, 106, 0.5);
+    border-radius: 2px;
+    background: rgba(14, 8, 4, 0.55);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(0, 0, 0, 0.25);
+    animation: introRise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.victory-eyebrow {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 5px;
+    font-size: 13px;
+    color: #e0b35e;
+    margin: 0 0 14px;
+}
+.victory-title {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    letter-spacing: 3px;
+    font-size: 46px;
+    color: #f7e8c4;
+    margin: 0 0 22px;
+    text-shadow: 0 6px 28px rgba(0, 0, 0, 0.6);
+}
+.victory-scripture {
+    border-top: 1px solid rgba(212, 175, 106, 0.35);
+    border-bottom: 1px solid rgba(212, 175, 106, 0.35);
+    padding: 18px 6px;
+    margin: 0 auto 18px;
+    max-width: 520px;
+}
+.victory-scripture .scripture-text {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.6;
+    color: #ead7ad;
+    margin: 0 0 10px;
+}
+.victory-scripture .scripture-cite {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 2px;
+    font-size: 12px;
+    color: #c9a86a;
+    margin: 0;
+}
+.victory-hint {
+    margin-top: 6px;
+    opacity: 0.7;
+    font-size: 0.9em;
+}
+
+/* ============================================================
+   NARRATIVE BANNER BEFORE GOLIATH (biblical story)
+   ============================================================ */
+#boss-intro-overlay {
+    display: none; /* shown by startBossPhase via JS */
+    position: absolute;
+    inset: 0;
+    z-index: 70;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    padding: 24px;
+    box-sizing: border-box;
+    color: #f3e6c6;
+    text-shadow: none;
+    background:
+        radial-gradient(ellipse at 50% 28%, rgba(214, 158, 92, 0.28), transparent 62%),
+        linear-gradient(180deg, #0f0904 0%, #241307 50%, #1a0d05 100%);
+}
+#boss-intro-card {
+    max-width: 640px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    padding: 42px 48px 36px;
+    border: 1px solid rgba(212, 175, 106, 0.5);
+    border-radius: 2px;
+    background: rgba(12, 7, 3, 0.6);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65), inset 0 0 70px rgba(0, 0, 0, 0.3);
+    animation: introRise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.bi-eyebrow {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 6px;
+    font-size: 13px;
+    color: #e0b35e;
+    margin: 0 0 12px;
+}
+.bi-title {
+    font-family: 'Cinzel', serif;
+    font-weight: 800;
+    letter-spacing: 3px;
+    font-size: 44px;
+    color: #f7e8c4;
+    margin: 0 0 22px;
+    text-shadow: 0 6px 28px rgba(0, 0, 0, 0.6);
+}
+.bi-body {
+    font-family: 'EB Garamond', serif;
+    font-size: 17px;
+    line-height: 1.6;
+    color: #e7d3a8;
+    margin: 0 auto 20px;
+    max-width: 540px;
+}
+.bi-body p { margin: 0 0 12px; }
+.bi-scripture {
+    border-top: 1px solid rgba(212, 175, 106, 0.35);
+    border-bottom: 1px solid rgba(212, 175, 106, 0.35);
+    padding: 16px 6px;
+    margin: 0 auto 24px;
+    max-width: 540px;
+}
+.bi-scripture .scripture-text {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.55;
+    color: #ead7ad;
+    margin: 0 0 8px;
+}
+.bi-scripture .scripture-cite {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 2px;
+    font-size: 12px;
+    color: #c9a86a;
+    margin: 0;
+}
+.bi-button {
+    display: inline-block;
+    cursor: pointer;
+    padding: 15px 50px;
+    border: 1.5px solid #e0b35e;
+    border-radius: 2px;
+    color: #f6e6bf;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 4px;
+    font-size: 16px;
+    background: rgba(224, 179, 94, 0.06);
+    transition: all 0.25s ease;
+}
+.bi-button:hover {
+    background: #e0b35e;
+    color: #2a1709;
+}
+.bi-hint {
+    margin: 16px 0 0;
+    font-family: 'EB Garamond', serif;
+    font-size: 14px;
+    color: #cbb585;
+    opacity: 0.8;
+}

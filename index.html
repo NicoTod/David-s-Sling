@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The David's Sling</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+                "@tweenjs/tween.js": "https://unpkg.com/@tweenjs/tween.js@23.1.1/dist/tween.esm.js"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="ui-layer">
+        <div id="hud">
+            <h1>The David's Sling</h1>
+            <p>Score: <span id="score">0</span></p>
+            <p>Level: <span id="level">1</span></p>
+            <div id="health-bar">
+                <div id="health-fill"></div>
+            </div>
+        </div>
+        <div id="controls">
+            <label for="difficulty">Difficulty:</label>
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+        </div>
+        <div id="power-meter">
+            <div id="power-fill"></div>
+        </div>
+        <div id="game-over-overlay">
+            <div id="game-over-box">
+                <h2>Game Over</h2>
+                <p>Final score: <span id="final-score">0</span></p>
+                <p>Level reached: <span id="final-level">1</span></p>
+                <p class="game-over-hint">Reload the page to try again</p>
+            </div>
+        </div>
+
+        <!-- Barra vita del BOSS finale (Golia). Nascosta finché non appare. -->
+        <div id="boss-ui">
+            <div id="boss-label">GOLIATH</div>
+            <div id="boss-bar"><div id="boss-fill"></div></div>
+        </div>
+        <!-- Messaggio del boss (colpo a segno / respinto dalla corazza, ecc.) -->
+        <div id="boss-msg"></div>
+
+        <!-- Banner narrativo PRIMA del livello di Golia: spiega la storia
+             biblica arrivati a questo punto. Mostrato da startBossPhase;
+             the button calls beginGoliathFight (spawns Goliath). -->
+        <div id="boss-intro-overlay">
+            <div id="boss-intro-card">
+                <p class="bi-eyebrow">1 Samuel 17</p>
+                <h2 class="bi-title">The Giant of Gath</h2>
+                <div class="bi-body">
+                    <p>As the shepherd David struck down the lion and the bear to guard his flock, so you have held back the beasts. But a far greater foe now waits in the valley.</p>
+                    <p>For forty days Goliath of Gath &mdash; six cubits tall, sheathed in bronze, his spear like a weaver's beam &mdash; has defied the armies of Israel, and no soldier dares face him. David comes down with no sword and no armor: only his staff, his sling, and five smooth stones from the brook.</p>
+                </div>
+                <div class="bi-scripture">
+                    <p class="scripture-text">Thou comest to me with a sword, and with a spear, and with a shield: but I come to thee in the name of the LORD of hosts, the God of the armies of Israel, whom thou hast defied.</p>
+                    <p class="scripture-cite">1 Samuel 17:45 &middot; King James Version</p>
+                </div>
+                <div id="goliath-begin-btn" class="bi-button">FACE THE GIANT</div>
+                <p class="bi-hint">Aim for the forehead &mdash; his armor turns aside all other blows</p>
+            </div>
+        </div>
+
+        <!-- Schermata di VITTORIA: mostrata da main.js (defeatGoliath). -->
+        <div id="victory-overlay">
+            <div id="victory-card">
+                <p class="victory-eyebrow">The giant is fallen</p>
+                <h2 class="victory-title">GOLIATH HAS FALLEN</h2>
+                <div class="victory-scripture">
+                    <p class="scripture-text">So David prevailed over the Philistine with a sling and with a stone, and smote the Philistine, and slew him; but there was no sword in the hand of David.</p>
+                    <p class="scripture-cite">1 Samuel 17:50 &middot; King James Version</p>
+                </div>
+                <p class="victory-hint">Reload the page to play again</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schermata introduttiva: regole + storia + passo biblico (KJV,
+         pubblico dominio). Mostrata all'avvio, nascosta al click di
+         "Take up the sling" (gestito in main.js -> startGame). -->
+    <div id="intro-overlay">
+        <div id="intro-card">
+            <p class="intro-eyebrow">1 Samuel 17</p>
+            <h1 class="intro-title">The David's Sling</h1>
+
+            <div class="intro-scripture">
+                <p class="scripture-text">Thy servant kept his father's sheep, and there came a lion&hellip; and I went out after him, and smote him&hellip; Thy servant slew both the lion and the bear.</p>
+                <p class="scripture-cite">1 Samuel 17:34&ndash;36 &middot; King James Version</p>
+            </div>
+
+            <p class="intro-story">Before he was a king, before the giant, David was a shepherd. When lions came for his flock, he met them with a sling and a steady hand. Goliath is still to come &mdash; but first, the lions.</p>
+
+            <div class="intro-rules">
+                <h2 class="rules-heading">How to play</h2>
+                <ul>
+                    <li><span class="rule-key">Hold</span> the mouse to draw the sling &mdash; the longer you hold, the harder the throw.</li>
+                    <li><span class="rule-key">Aim</span> with your cursor and <span class="rule-key">release</span> to hurl the stone.</li>
+                    <li><span class="rule-key">Strike</span> each lion before it reaches you. The sling reloads on its own.</li>
+                    <li>Every lion that reaches you wounds David. Endure &mdash; each level grows fiercer.</li>
+                </ul>
+            </div>
+
+            <button id="begin-button">Take up the sling</button>
+        </div>
+    </div>
+    
+    <script type="module" src="main.js"></script>
+</body>
+</html>
