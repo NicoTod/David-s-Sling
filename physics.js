@@ -142,8 +142,11 @@ export function slingPhysics(davidGroup, isThrowing, dt, isSlingOpen) {
                 davidGroup.pocket.quaternion.copy(parentWorldInverse).multiply(targetQuaternion);
                 davidGroup.pocket.rotateY(Math.PI / 2);
             } else {
-                davidGroup.pocket.lookAt(new THREE.Vector3(0, 0, 0));
-                davidGroup.pocket.rotateX(Math.PI / 2);
+                davidGroup.pocket.up.set(0, 0, 1);
+                const directionDown = new THREE.Vector3().subVectors(davidGroup.pocketWorldPos, handWorldPos);
+                const lookTarget = davidGroup.pocketWorldPos.clone().add(directionDown);
+                davidGroup.pocket.lookAt(lookTarget);
+                davidGroup.pocket.up.set(0, 1, 0);
             };
 
             if (isSlingOpen) {

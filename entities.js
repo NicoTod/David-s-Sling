@@ -349,8 +349,8 @@ export function createDavid() {
 
         return { upperArm, forearm, hand, upperTotal, foreTotal };
     }
-    const rightArm = buildArm(1);
-    const leftArm = buildArm(-1);
+    const rightArm = buildArm(-1);
+    const leftArm = buildArm(1);
 
     // ============================================================
     // LEGS - CapsuleGeometry
@@ -387,8 +387,8 @@ export function createDavid() {
 
         return { thigh, shin, foot, thighTotal, shinTotal };
     }
-    const rightLeg = buildLeg(1);
-    const leftLeg = buildLeg(-1);
+    const rightLeg = buildLeg(-1);
+    const leftLeg = buildLeg(1);
 
     // ============================================================
     // SLING - attached to the bottom of the right forearm,
@@ -415,7 +415,7 @@ export function createDavid() {
 
     rightArm.forearm.add(slingGroup);
 
-    const pocketRadius = 0.16;
+    const pocketRadius = 0.18;
     const pocketWidth = 0.4;
     const pocketGeom = new THREE.CylinderGeometry(pocketRadius, pocketRadius, pocketWidth, 12, 1, true, 0, Math.PI);
     pocketGeom.rotateZ(Math.PI / 2);
@@ -424,8 +424,9 @@ export function createDavid() {
     const pocket = createPart(pocketGeom, pocketMat, { outline: false });
     pocket.position.set(0, -0.8, 0);
     slingGroup.add(pocket);
+    davidGroup.rotation.y = Math.PI;
 
-    davidGroup.position.set(0, 0, 0);
+    davidGroup.position.set(0, -0.1, 0);
 
     return {
         model: davidGroup,

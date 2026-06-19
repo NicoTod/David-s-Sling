@@ -712,10 +712,10 @@ function onMouseUp(e) {
         // AUTOMATIC reload: after a short moment (so you see the
         // sling swing empty), a new stone reappears by itself.
         // The player no longer has to press Space.
-        const AUTO_RELOAD_DELAY = 500; // ms
+        /*const AUTO_RELOAD_DELAY = 500; // ms
         setTimeout(() => {
             reloadSling();
-        }, AUTO_RELOAD_DELAY);
+        }, AUTO_RELOAD_DELAY);*/
     }, throwDuration*0.7);
 }
 
@@ -1357,26 +1357,26 @@ function animate(time) {
 
         const progress = chargeForce / MAX_CHARGE;
 
-        // Animate David's right arm winding back based on charge progress
+        /// Animate David's right arm winding back based on charge progress
         // (mirrored z->-z so the wind-up matches David now facing the lions)
-        davidGroup.torso.rotation.y = degToRad(45) * progress;
+        davidGroup.torso.rotation.y = degToRad(-45) * progress;
         davidGroup.rightUpperArm.rotation.x = degToRad(120) * progress;
         davidGroup.rightForearm.rotation.x = degToRad(-15) * progress;
-        davidGroup.rightForearm.rotation.z = degToRad(30) * progress;
+        davidGroup.rightForearm.rotation.z = degToRad(-30) * progress;
 
         // Left arm
         davidGroup.leftUpperArm.rotation.x = degToRad(-80) * progress; 
-        davidGroup.leftUpperArm.rotation.z = degToRad(10) * progress;
+        davidGroup.leftUpperArm.rotation.z = degToRad(-10) * progress;
         davidGroup.leftForearm.rotation.x = degToRad(-10) * progress; 
 
         // little squat with legs
         davidGroup.torso.position.y = 2.5 - (0.3 * progress); 
-        davidGroup.rightThigh.rotation.x = degToRad(35) * progress;
-        davidGroup.leftThigh.rotation.x = degToRad(35) * progress;
-        davidGroup.rightShin.rotation.x = degToRad(-70) * progress;
-        davidGroup.leftShin.rotation.x = degToRad(-70) * progress;
-        davidGroup.rightFoot.rotation.x = degToRad(35) * progress;
-        davidGroup.leftFoot.rotation.x = degToRad(35) * progress;
+        davidGroup.rightThigh.rotation.x = degToRad(-35) * progress;
+        davidGroup.leftThigh.rotation.x = degToRad(-35) * progress;
+        davidGroup.rightShin.rotation.x = degToRad(70) * progress;
+        davidGroup.leftShin.rotation.x = degToRad(70) * progress;
+        davidGroup.rightFoot.rotation.x = degToRad(-35) * progress;
+        davidGroup.leftFoot.rotation.x = degToRad(-35) * progress;
     }
 
     TWEEN.update(time);
