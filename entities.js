@@ -1,24 +1,9 @@
 import * as THREE from 'three';
+import { makeIrisTexture } from './textures.js';
 
-console.log('%c[VERSION CHECK] entities.js — Disney style build, with hands/muscles/folds/mane — loaded successfully', 'background: #222; color: #4caf50; font-size: 14px; padding: 4px;');
+console.log('%c[VERSION CHECK] entities.js — boss transition (sand flash + war-horn) build — loaded successfully', 'background: #222; color: #4caf50; font-size: 14px; padding: 4px;');
 
-
-/**
- * ============================================================
- * DAVID - DISNEY STYLE PROTOTYPE
- * ============================================================
- * Same Group/Mesh hierarchy as the original project (torso ->
- * limbs), but with organic geometry instead of boxes, plus toon
- * shading + outline. This means all the animation logic in your
- * main.js/physics.js (rotations on torso, rightUpperArm, etc.)
- * works identically, with no changes.
- * ============================================================
- */
-
-// --- TOON SHADING SETUP ---
-// A 4-level gradient map for cel-shading: a few hard steps of
-// light/shadow instead of a continuous gradient (Phong/Standard).
-// This is the single change that "reads" most as cartoon.
+// A 4-level gradient map for cel-shading: a few hard steps of light/shadow instead of a continuous gradient
 function createToonGradientMap() {
     const colors = new Uint8Array([60, 120, 180, 255]);
     const gradientTexture = new THREE.DataTexture(colors, colors.length, 1, THREE.RedFormat);
@@ -37,12 +22,7 @@ function makeToonMaterial(color) {
     });
 }
 
-// --- OUTLINE TECHNIQUE (backface method) ---
-// For each "main" mesh we create a slightly larger copy with
-// inverted normals (BackSide) and a flat black color.
-// The result: from outside you only see a thin black border
-// around the shape, because the original (smaller) mesh covers
-// it from the front. Technique used in Zelda BOTW, Genshin, etc.
+// black edges
 const outlineMaterial = new THREE.MeshBasicMaterial({
     color: 0x1a1a1a,
     side: THREE.BackSide,
@@ -55,7 +35,7 @@ function addOutline(mesh, scale = 1.06) {
     return outlineMesh;
 }
 
-// Helper: create a mesh + outline in one go, with shadows set
+// create a mesh + outline in one call, with shadows set
 function createPart(geometry, material, options = {}) {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = options.castShadow !== false;
@@ -66,29 +46,21 @@ function createPart(geometry, material, options = {}) {
     return mesh;
 }
 
-/**
- * Builds the David model in a Disney "young hero" style
- * (reference: young Hercules / young Tarzan): balanced but
- * stylized proportions, not chibi. Defined neck, a slightly
- * athletic V-shaped torso, soft rounded limbs.
- */
+// build david model
 export function createDavid() {
     const davidGroup = new THREE.Group();
 
     // --- MATERIALS ---
     const skinMat = makeToonMaterial(0xffcc99);
-    const tunicMat = makeToonMaterial(0x2f5fb0);   // tunica blu
+    const tunicMat = makeToonMaterial(0x2f5fb0);   // blue tunic
     const beltMat = makeToonMaterial(0xeeeeea);    // white belt/trim
-    const hairMat = makeToonMaterial(0x3b2615);    // dark brown hair
+    const hairShadow = makeToonMaterial(0x7e4420);// Copper-blond hair, in three tones
+    const hairBase = makeToonMaterial(0xb06a30);
+    const hairHi = makeToonMaterial(0xd99a52);
+    const hairMat = hairBase;                   
     const sandalMat = makeToonMaterial(0x8a5a3c);
 
-    // ============================================================
-    // TORSO - LatheGeometry for a tapered "V" silhouette
-    // ============================================================
-    // The profile is a set of (radius, height) points revolved 360
-    // degrees around the Y axis. A larger radius at the shoulders and
-    // a narrower waist give the athletic V-shape, without sculpting
-    // vertices by hand.
+    // torso (V silhouette)
     const torsoProfile = [
         new THREE.Vector2(0.29, 0.0),    // hips (narrower)
         new THREE.Vector2(0.30, 0.22),
@@ -105,22 +77,14 @@ export function createDavid() {
     torso.position.y = 2.4;
     davidGroup.add(torso);
 
-    // Note: no pectoral/ab spheres on the chest - rounded spheres there
-    // read as breasts. The masculine shape comes from the lathe profile
-    // (broad shoulders, trim waist) plus the deltoid caps on the arms.
-
-    // Belt (a small torus around the waist)
+    // Belt
     const beltGeom = new THREE.TorusGeometry(0.32, 0.05, 8, 16);
     beltGeom.rotateX(Math.PI / 2);
     const belt = createPart(beltGeom, beltMat, { outline: false });
     belt.position.y = -0.05;
     torso.add(belt);
 
-    // ------------------------------------------------------------
-    // TUNIC FOLDS - thin capsules arranged radially around the torso,
-    // from waist to hips, following the lathe profile in that region.
-    // Darker than the tunic to suggest shaded grooves.
-    // ------------------------------------------------------------
+    // tunic folds
     const waistRadius = 0.32, waistYLocal = 0.50 - 0.6;
     const hipRadius = 0.29, hipYLocal = 0.0 - 0.6;
     const nFolds = 7;
@@ -141,9 +105,6 @@ export function createDavid() {
         direction.normalize();
 
         const foldGeom = new THREE.CapsuleGeometry(foldRadius, Math.max(0.001, length - foldRadius * 2), 4, 6);
-        // Orient the capsule (Y-aligned by default) along the
-        // desired direction with a quaternion, the same technique
-        // used to orient the sling pocket in slingPhysics.
         const yAxis = new THREE.Vector3(0, 1, 0);
         const quat = new THREE.Quaternion().setFromUnitVectors(yAxis, direction);
         foldGeom.applyQuaternion(quat);
@@ -154,26 +115,20 @@ export function createDavid() {
         torso.add(fold);
     }
 
-    // ============================================================
-    // NECK + HEAD
-    // ============================================================
+    // neck
     const neckGeom = new THREE.CylinderGeometry(0.14, 0.17, 0.18, 12);
     const neck = createPart(neckGeom, skinMat);
     neck.position.y = 0.72;
     torso.add(neck);
 
-    // Head: a sphere slightly stretched vertically (Y scale)
-    // instead of a perfect sphere - more expressive, less "ball"
+    // head
     const headGeom = new THREE.SphereGeometry(0.34, 20, 20);
     headGeom.scale(0.92, 1.05, 0.95);
     const head = createPart(headGeom, skinMat);
     head.position.y = 0.22;
     neck.add(head);
 
-    // Hair: CURLY. Many small overlapping curls cover the whole
-    // scalp and nape EVENLY (no two symmetric bumps on the back that
-    // looked like eyes from behind), leaving the face clear. A small
-    // seeded PRNG keeps the look stable across page loads.
+    // hair
     let hairSeed = 1337;
     const hrand = () => {
         hairSeed = (hairSeed * 1664525 + 1013904223) % 4294967296;
@@ -194,16 +149,30 @@ export function createDavid() {
             const jx = (hrand() - 0.5) * 0.044;
             const jy = (hrand() - 0.5) * 0.044;
             const jz = (hrand() - 0.5) * 0.044;
-            const r = 0.075 + hrand() * 0.03;
+            const r = 0.072 + hrand() * 0.032;
             const push = 1.07;
-            const curl = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 8), hairMat);
-            curl.position.set(x * push + jx, y + jy, z * push + jz);
+            const px = x * push + jx, py = y + jy, pz = z * push + jz;
+
+            // Shade by height
+            const tier = (y / hry) * 0.5 + 0.5 + (hrand() - 0.5) * 0.2;
+            const mat = tier > 0.62 ? hairHi : (tier > 0.34 ? hairBase : hairShadow);
+
+            const curl = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 8), mat);
+            curl.position.set(px, py, pz);
+            curl.scale.set(1, 0.85 + hrand() * 0.45, 1); // slight elongation variety
             curl.castShadow = true;
             head.add(curl);
+
+            const a = hrand() * Math.PI * 2;
+            const sat = new THREE.Mesh(new THREE.SphereGeometry(r * (0.55 + hrand() * 0.22), 8, 8), mat);
+            sat.position.set(px + Math.cos(a) * r * 0.95, py - r * 0.55, pz + Math.sin(a) * r * 0.95);
+            sat.castShadow = true;
+            head.add(sat);
         }
     }
 
-    // Eyes: large, Disney style (white sclera + dark iris)
+    // eyes: light blue-green, with a graded iris texture and a catchlight.
+    const irisTexture = makeIrisTexture(128);
     function createEye(xSide) {
         const eyeGroup = new THREE.Group();
         const scleraGeom = new THREE.SphereGeometry(0.075, 12, 12);
@@ -212,11 +181,21 @@ export function createDavid() {
         sclera.scale.set(1, 1.15, 0.8);
         eyeGroup.add(sclera);
 
-        const irisGeom = new THREE.SphereGeometry(0.04, 10, 10);
-        const irisMat = new THREE.MeshToonMaterial({ color: 0x4a2e1a, gradientMap: toonGradientMap });
-        const iris = new THREE.Mesh(irisGeom, irisMat);
-        iris.position.z = 0.05;
+        // Iris as a flat disc in front of the sclera.
+        const iris = new THREE.Mesh(
+            new THREE.CircleGeometry(0.052, 24),
+            new THREE.MeshBasicMaterial({ map: irisTexture })
+        );
+        iris.position.z = 0.063;
         eyeGroup.add(iris);
+
+        // Catchlight: a small white highlight at the upper edge of the iris.
+        const catchlight = new THREE.Mesh(
+            new THREE.CircleGeometry(0.013, 12),
+            new THREE.MeshBasicMaterial({ color: 0xffffff })
+        );
+        catchlight.position.set(xSide * -0.012, 0.018, 0.065);
+        eyeGroup.add(catchlight);
 
         eyeGroup.position.set(xSide * 0.13, 0.02, 0.28);
         return eyeGroup;
@@ -224,11 +203,10 @@ export function createDavid() {
     head.add(createEye(1));
     head.add(createEye(-1));
 
-    // Brows (small flattened cylinders, add expressiveness
-    // without needing facial textures)
+    // Brows
     function createBrow(xSide) {
         const browGeom = new THREE.BoxGeometry(0.12, 0.025, 0.03);
-        const brow = new THREE.Mesh(browGeom, hairMat);
+        const brow = new THREE.Mesh(browGeom, hairShadow);
         brow.position.set(xSide * 0.13, 0.11, 0.31);
         brow.rotation.z = xSide * -0.15;
         return brow;
@@ -236,27 +214,12 @@ export function createDavid() {
     head.add(createBrow(1));
     head.add(createBrow(-1));
 
-    // ============================================================
-    // ARMS - CapsuleGeometry (rounded, organic)
-    // ============================================================
-    // CapsuleGeometry(radius, length, capSegments, radialSegments)
-    // is centered at the origin: its total Y extent is
-    // (length + 2*radius), from -half to +half. To use it as a
-    // "bone" with the pivot at the top end (e.g. shoulder), we
-    // shift it up by +halfTotal: so the object origin
-    // coincides with the TOP of the capsule, and the bottom
-    // of the capsule sits at -fullTotal from the pivot.
+    // capsule for arms
     function capsuleTotalLength(radius, length) {
         return length + radius * 2;
     }
 
-    // ----------------------------------------------------------
-    // HAND - palm + 4 fingers (not 5, Disney style: think of
-    // Mickey Mouse's hands) + a thumb angled to the side. All
-    // grouped in a single Group so it behaves as one rigid
-    // unit when attached to the wrist, following the
-    // forearm rotations during animation.
-    // ----------------------------------------------------------
+    // hand
     function createHand(isLeft = true) {
         const handGroup = new THREE.Group();
         const palmRadius = 0.1;
@@ -265,12 +228,6 @@ export function createDavid() {
         palmGeom.scale(1, 0.85, 1.1);
         const palm = createPart(palmGeom, skinMat, { outline: false });
         handGroup.add(palm);
-
-        // 4 fingers: index, middle, ring, pinky. The attach
-        // point is computed in angular coordinates on the
-        // spherical surface of the palm (guaranteeing by
-        // construction there are no gaps, unlike choosing
-        // Y/Z independently). sideFlip mirrors left vs right hand.
         const fingerRadius = 0.022;
         const fingerBaseLength = 0.085;
         const sideFlip = isLeft ? 1 : -1;
@@ -295,8 +252,7 @@ export function createDavid() {
             handGroup.add(finger);
         });
 
-        // Thumb: shorter, angled sideways (full spherical
-        // coordinates, same principle as the fingers)
+        // Thumb
         const thumbRadius = 0.026;
         const thumbLength = 0.06;
         const thumbTotal = capsuleTotalLength(thumbRadius, thumbLength);
@@ -317,22 +273,22 @@ export function createDavid() {
     }
 
     function buildArm(xSide) {
-        const upperR = 0.13, upperL = 0.42;   // a bit thicker (more athletic)
+        const upperR = 0.13, upperL = 0.42;
         const upperTotal = capsuleTotalLength(upperR, upperL);
         const upperArmGeom = new THREE.CapsuleGeometry(upperR, upperL, 6, 10);
         upperArmGeom.translate(0, -upperTotal / 2, 0); // pivot at top (shoulder)
         const upperArm = createPart(upperArmGeom, skinMat);
-        upperArm.position.set(xSide * 0.42, 0.5, 0); // shoulder line (was 0.95, up at the ears)
+        upperArm.position.set(xSide * 0.42, 0.5, 0); // shoulder line
         torso.add(upperArm);
 
-        // Deltoid cap: a muscle bump at the shoulder (moves with the arm)
+        // Deltoid cap
         const deltGeom = new THREE.SphereGeometry(0.15, 12, 12);
         deltGeom.scale(1.1, 0.9, 1.0);
         const deltoid = createPart(deltGeom, skinMat, { outline: true, outlineScale: 1.04 });
         deltoid.position.set(xSide * 0.02, 0.02, 0);
         upperArm.add(deltoid);
 
-        const foreR = 0.105, foreL = 0.38;   // a bit thicker
+        const foreR = 0.105, foreL = 0.38;  
         const foreTotal = capsuleTotalLength(foreR, foreL);
         const forearmGeom = new THREE.CapsuleGeometry(foreR, foreL, 6, 10);
         forearmGeom.translate(0, -foreTotal / 2, 0); // pivot at top (elbow)
@@ -340,23 +296,20 @@ export function createDavid() {
         forearm.position.set(0, -upperTotal, 0); // attached to the bottom of the upper arm
         upperArm.add(forearm);
 
-        // Full hand (palm + fingers + thumb), attached to the
-        // bottom of the forearm with the same validated overlap
-        // as the simplified version.
+        // hand creation
         const hand = createHand(xSide === -1);
         hand.position.set(0, -foreTotal + 0.05, 0);
         forearm.add(hand);
 
         return { upperArm, forearm, hand, upperTotal, foreTotal };
     }
+    // arms creation
     const rightArm = buildArm(-1);
     const leftArm = buildArm(1);
 
-    // ============================================================
-    // LEGS - CapsuleGeometry
-    // ============================================================
+    // legs
     function buildLeg(xSide) {
-        const thighR = 0.155, thighL = 0.6;   // longer legs: taller, feet reach the ground
+        const thighR = 0.155, thighL = 0.6;  
         const thighTotal = capsuleTotalLength(thighR, thighL);
         const thighGeom = new THREE.CapsuleGeometry(thighR, thighL, 6, 10);
         thighGeom.translate(0, -thighTotal / 2, 0); // pivot at top (hip)
@@ -372,11 +325,7 @@ export function createDavid() {
         shin.position.set(0, -thighTotal, 0); // attached to the bottom of the thigh
         thigh.add(shin);
 
-        // Simplified sandal (a flattened horizontal capsule).
-        // Overlap (+0.04) to compensate the small visual gap from
-        // the combination of 0.7 Y-scale and rotation.
-        // Slight outward lateral offset (xSide * 0.02) for a
-        // visually more stable footing.
+        // foot
         const footGeom = new THREE.CapsuleGeometry(0.1, 0.22, 6, 8);
         footGeom.rotateZ(Math.PI / 2);
         footGeom.scale(1, 0.7, 1);
@@ -387,14 +336,10 @@ export function createDavid() {
 
         return { thigh, shin, foot, thighTotal, shinTotal };
     }
-    const rightLeg = buildLeg(-1);
-    const leftLeg = buildLeg(1);
+    const rightLeg = buildLeg(1);
+    const leftLeg = buildLeg(-1);
 
-    // ============================================================
-    // SLING - attached to the bottom of the right forearm,
-    // i.e. where the hand is (-foreTotal from the forearm,
-    // with a small margin to sit just beyond the hand)
-    // ============================================================
+    // Sling
     const slingGroup = new THREE.Group();
     slingGroup.position.set(0, -rightArm.foreTotal - 0.05, 0);
     const stringMat = new THREE.LineBasicMaterial({ color: 0x553311, linewidth: 2 });
@@ -424,7 +369,6 @@ export function createDavid() {
     const pocket = createPart(pocketGeom, pocketMat, { outline: false });
     pocket.position.set(0, -0.8, 0);
     slingGroup.add(pocket);
-    davidGroup.rotation.y = Math.PI;
 
     davidGroup.position.set(0, -0.1, 0);
 
@@ -446,26 +390,12 @@ export function createDavid() {
         stringLeft,
         stringRight,
         pocket,
+        tunicMat,        
+        foldMat: foldColor,
     };
 }
 
-/**
- * ============================================================
- * LION - AGGRESSIVE TOON STYLE
- * ============================================================
- * The SKELETON (body, positions/pivots of the articulated legs
- * and tail) EXACTLY replicates the colleague's structure, so
- * her animateLionRun() in main.js drives it with no changes.
- * The LOOK, instead, is redesigned: toon materials, an
- * aggressive head (V brows, narrow yellow eyes, fangs) and a
- * SPIKED mane (radiating cones) instead of round "cookie"
- * spheres.
- *
- * Exported interface (required by main.js/physics.js and by
- * animateLionRun): { model, body, head, tail, tailSegments,
- * legs, isDead }. 'legs' is an array of 4 objects
- * { leg, thigh, shin, paw } in order [FL, FR, BL, BR].
- */
+// lion
 export function createLion() {
     const lionGroup = new THREE.Group();
 
@@ -487,8 +417,7 @@ export function createLion() {
         return seed / 233280;
     }
 
-    // Helper: a mane "spike" cone, oriented toward
-    // 'direction', with its base placed at 'basePos'.
+    // mane "spike" cone, oriented toward 'direction', with its base placed at 'basePos'
     function maneSpike(radius, height, direction, basePos, material) {
         const geom = new THREE.ConeGeometry(radius, height, 7);
         geom.translate(0, height / 2, 0); // base at origin, tip toward +y
@@ -500,24 +429,17 @@ export function createLion() {
         return mesh;
     }
 
-    // ---- BODY: a toon capsule filling the colleague's box(1,1,2)
-    // (radius 0.5 + length 1.0 along z gives a 1x1x2 bbox), so
-    // legs/head/tail stay aligned with her structure. ----
+    // capsule body
     const bodyGeom = new THREE.CapsuleGeometry(0.5, 1.0, 8, 16);
     bodyGeom.rotateX(Math.PI / 2); // capsula lungo Z
     const body = createPart(bodyGeom, furMat);
     body.position.y = 1.6;
     lionGroup.add(body);
 
-    // Muscle bulges on shoulders and hips: the capsule body is
-    // rounded, so the sides would leave a small gap above the
-    // leg attachments (her structure used a flat-bottomed box).
-    // These bulges cover the gap AND give a muscular/powerful
-    // look, fitting for an aggressive lion.
-    // Children of the body, so they follow the animation pitch/roll.
+    // bulges
     const lionBulgePositions = [
         [-0.4, -0.4, 0.8], [0.4, -0.4, 0.8],   // shoulders (front)
-        [-0.4, -0.4, -0.8], [0.4, -0.4, -0.8], // fianchi (posteriori)
+        [-0.4, -0.4, -0.8], [0.4, -0.4, -0.8], // back
     ];
     lionBulgePositions.forEach((p) => {
         const bGeom = new THREE.SphereGeometry(0.3, 10, 10);
@@ -527,7 +449,7 @@ export function createLion() {
         body.add(bulge);
     });
 
-    // ---- HEAD: a Group at the colleague's EXACT position ----
+    // head (sphere)
     const head = new THREE.Group();
     head.position.set(0, 0.5, 1.2);
     body.add(head);
@@ -538,7 +460,7 @@ export function createLion() {
     const headMesh = createPart(headGeom, furMat);
     head.add(headMesh);
 
-    // muzzle (juts forward, +z)
+    // muzzle
     const muzzleGeom = new THREE.SphereGeometry(0.23, 12, 12);
     muzzleGeom.scale(1.1, 0.78, 1.0);
     const muzzle = createPart(muzzleGeom, muzzleMat, { outline: false });
@@ -552,7 +474,7 @@ export function createLion() {
     nose.position.set(0, -0.05, headRadius + 0.24);
     head.add(nose);
 
-    // fangs (2 white downward cones) - an aggressive touch
+    // fangs
     [-1, 1].forEach((sx) => {
         const fangGeom = new THREE.ConeGeometry(0.026, 0.1, 6);
         fangGeom.rotateX(Math.PI); // points downward (-y)
@@ -561,7 +483,7 @@ export function createLion() {
         head.add(fang);
     });
 
-    // aggressive brows: dark wedges tilted in a V
+    // aggressive brows
     [-1, 1].forEach((sx) => {
         const browGeom = new THREE.BoxGeometry(0.18, 0.06, 0.09);
         const brow = new THREE.Mesh(browGeom, maneMat);
@@ -593,10 +515,8 @@ export function createLion() {
         head.add(ear);
     });
 
-    // ---- SPIKED MANE (attached to the head) ----
+    // spike mane
     const maneCenter = new THREE.Vector3(0, 0, -0.06);
-    // Base layer: overlapping dark spheres = a full mass of fur,
-    // with depth (z) too, not a flat disc.
     const nBase = 10;
     for (let i = 0; i < nBase; i++) {
         const ang = (i / nBase) * Math.PI * 2;
@@ -610,7 +530,7 @@ export function createLion() {
         lobe.castShadow = true;
         head.add(lobe);
     }
-    // Outer spikes layer: radial cones (jagged silhouette).
+    
     const nSpikes = 16;
     for (let i = 0; i < nSpikes; i++) {
         const ang = (i / nSpikes) * Math.PI * 2;
@@ -625,7 +545,7 @@ export function createLion() {
         head.add(maneSpike(spikeRad, spikeLen, direction, basePos,
             (i % 2 === 0) ? maneMat : maneMat2));
     }
-    // Inner spikes layer (density between base and outer spikes).
+    
     const nInner = 7;
     for (let i = 0; i < nInner; i++) {
         const ang = (i / nInner) * Math.PI * 2 + 0.26;
@@ -637,7 +557,7 @@ export function createLion() {
         head.add(maneSpike(0.06, 0.16 + srand() * 0.09, direction, basePos, maneMat));
     }
 
-    // ---- TAIL: the colleague's EXACT structure, toon material ----
+    // tail as a cylinder with segments
     const tailGroup = new THREE.Group();
     tailGroup.position.set(0, 0.3, -1);
     body.add(tailGroup);
@@ -662,9 +582,7 @@ export function createLion() {
     tuft.castShadow = true;
     parentBone.add(tuft);
 
-    // ---- LEGS: the colleague's EXACT positions/pivots (thigh 0.6,
-    // shin 0.4, pivot at top) so animateLionRun moves them well;
-    // tapered toon cylinder meshes instead of boxes. ----
+    // legs
     const thighGeom = new THREE.CylinderGeometry(0.16, 0.13, 0.6, 10);
     thighGeom.translate(0, -0.3, 0);
     const shinGeom = new THREE.CylinderGeometry(0.135, 0.11, 0.4, 10);
@@ -705,27 +623,13 @@ export function createLion() {
         head: head,
         tail: tailGroup,
         tailSegments: tailSegments,
-        legs: legs,       // [FL, FR, BL, BR], oggetti {leg,thigh,shin,paw}
+        legs: legs,
         isDead: false,
     };
 }
 
 
-/**
- * ============================================================
- * GOLIATH - final boss (armored Philistine giant, toon)
- * ============================================================
- * Faithful to 1 Samuel 17:5-7: a crested bronze helmet, scale
- * armor, greaves, a round shield, a huge spear. ~5 units tall
- * (David ~3). Faces +z (toward David and the camera), so the
- * FOREHEAD — the weak spot, as in the 2D design — faces the
- * player.
- *
- * Exposes: { model, head, forehead, isDead }. 'forehead' is
- * an empty Object3D on the forehead: main.js reads its world
- * position to tell whether the stone hits the weak spot
- * (victory) instead of the armor.
- */
+// Goliath
 export function createGoliath() {
     const g = new THREE.Group();
 
@@ -742,13 +646,12 @@ export function createGoliath() {
     const cylY = (rt, rb, h, seg = 12) => new THREE.CylinderGeometry(rt, rb, h, seg);
     const boxG = (x, y, z) => new THREE.BoxGeometry(x, y, z);
 
-    // ===== LEGS (groups pivoted at the hip, so they can be
-    //       animated while walking) =====
+    // legs
     const goliathLegs = [];
     [-1, 1].forEach((sx) => {
         const hx = sx * 0.42;
         const legGroup = new THREE.Group();
-        legGroup.position.set(hx, 2.4, 0); // perno all'altezza dell'anca
+        legGroup.position.set(hx, 2.4, 0); 
         g.add(legGroup);
 
         const thigh = createPart(cylY(0.26, 0.26, 1.05), skin, { outline: false });
@@ -764,10 +667,10 @@ export function createGoliath() {
         foot.position.set(0, 0.11 - 2.4, 0.18);
         legGroup.add(foot);
 
-        goliathLegs.push(legGroup); // [sinistra (sx=-1), destra (sx=1)]
+        goliathLegs.push(legGroup);
     });
 
-    // ===== PELVIS / ARMORED SKIRT =====
+    // armored skirt
     const skirtGeom = cylY(0.62, 0.62, 0.6, 18); skirtGeom.scale(1.0, 1.0, 0.85);
     const skirt = createPart(skirtGeom, tunic, { outline: false });
     skirt.position.set(0, 2.55, 0);
@@ -780,7 +683,7 @@ export function createGoliath() {
         g.add(strip);
     }
 
-    // ===== TORSO / CUIRASS =====
+    // cuirass
     const chestGeom = new THREE.SphereGeometry(0.78, 16, 16); chestGeom.scale(1.05, 0.95, 0.72);
     const chest = createPart(chestGeom, brass);
     chest.position.set(0, 3.45, 0);
@@ -788,7 +691,7 @@ export function createGoliath() {
     const abdomen = createPart(boxG(1.15, 0.55, 0.82), brassD, { outline: false });
     abdomen.position.set(0, 2.95, 0.02);
     g.add(abdomen);
-    // scales (rows of dark arcs on the chest)
+    
     for (let row = 0; row < 3; row++) {
         const y = 3.15 + row * 0.28;
         for (let col = -2; col <= 2; col++) {
@@ -799,7 +702,7 @@ export function createGoliath() {
         }
     }
 
-    // ===== SHOULDERS =====
+    // shoulders
     [-1, 1].forEach((sx) => {
         const pGeom = new THREE.SphereGeometry(0.34, 12, 12); pGeom.scale(1.1, 0.9, 1.0);
         const pauldron = createPart(pGeom, brass, { outline: false });
@@ -807,8 +710,7 @@ export function createGoliath() {
         g.add(pauldron);
     });
 
-    // ===== ARMS =====
-    // right: holds the spear; left: holds the shield
+    // arms
     const upArmR = createPart(cylY(0.2, 0.2, 0.95), skin, { outline: false });
     upArmR.position.set(0.92, 3.5, 0.05); g.add(upArmR);
     const foreR = createPart(cylY(0.17, 0.17, 0.9), skin, { outline: false });
@@ -827,7 +729,7 @@ export function createGoliath() {
     vambL.rotation.x = THREE.MathUtils.degToRad(70);
     vambL.position.set(-0.9, 3.05, 0.55); g.add(vambL);
 
-    // ===== ROUND SHIELD (on the left arm, in front) =====
+    // shield
     const shieldGeom = cylY(0.62, 0.62, 0.12, 20); shieldGeom.rotateX(Math.PI / 2);
     const shield = createPart(shieldGeom, brass, { outline: false });
     shield.position.set(-0.78, 3.05, 0.75); g.add(shield);
@@ -836,14 +738,14 @@ export function createGoliath() {
     const boss = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10), brassD);
     boss.position.set(-0.78, 3.05, 0.84); g.add(boss);
 
-    // ===== SPEAR (huge) =====
+    // spear
     const shaft = createPart(cylY(0.06, 0.06, 3.8), wood, { outline: false });
     shaft.position.set(0.98, 3.7, 0.28); g.add(shaft);
     const collar = new THREE.Mesh(cylY(0.1, 0.1, 0.22), brassD); collar.position.set(0.98, 5.5, 0.28); g.add(collar);
     const spearHead = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.62, 12), iron);
     spearHead.position.set(0.98, 5.85, 0.28); spearHead.castShadow = true; g.add(spearHead);
 
-    // ===== NECK + HEAD =====
+    // head and neck
     const neck = createPart(cylY(0.22, 0.22, 0.28), skin, { outline: false });
     neck.position.set(0, 4.32, 0); g.add(neck);
 
@@ -867,7 +769,7 @@ export function createGoliath() {
         brow.position.set(sx * 0.16, 0.15, 0.36); head.add(brow);
     });
 
-    // ===== HELMET + CREST =====
+    // helmet
     const helmGeom = new THREE.SphereGeometry(0.46, 16, 16); helmGeom.scale(1.05, 1.0, 1.05);
     const helm = createPart(helmGeom, brass, { outline: false });
     helm.position.set(0, 0.18, 0); head.add(helm);
@@ -882,9 +784,7 @@ export function createGoliath() {
         head.add(plume);
     }
 
-    // ===== FOREHEAD (weak spot): empty Object3D, child of the head =====
-    // placed on the forehead (upper-front of the face, below the helmet);
-    // main.js reads its world position for hit detection.
+    // forehead
     const forehead = new THREE.Object3D();
     forehead.position.set(0, 0.14, 0.42);
     head.add(forehead);
@@ -898,15 +798,7 @@ export function createGoliath() {
     };
 }
 
-/**
- * ============================================================
- * SHEEP - a cartoon sheep (David's flock)
- * ============================================================
- * Cream woolly body (ellipsoid + bumps), dark head, ears,
- * little eyes, 4 short legs and a small tail. Small (~1 unit),
- * facing +z. Exposes { model, head }: 'head' is a group, so
- * main.js can tilt it for the grazing motion.
- */
+// sheep
 export function createSheep() {
     const s = new THREE.Group();
     const wool = makeToonMaterial(0xf1ede1);
@@ -917,7 +809,7 @@ export function createSheep() {
         return g;
     };
 
-    // woolly body (with toon outline)
+    // woolly body
     const body = createPart(sph(0.45, 1.35, 0.95, 1.05), wool, { outline: true, outlineScale: 1.04 });
     body.position.set(0, 0.62, 0);
     s.add(body);
@@ -929,7 +821,7 @@ export function createSheep() {
             f.position.set(x, y, z); f.castShadow = true; s.add(f);
         });
 
-    // head (group: can tilt for grazing)
+    // head
     const head = new THREE.Group();
     head.position.set(0, 0.6, 0.66);
     s.add(head);
@@ -961,9 +853,7 @@ export function createSheep() {
     return { model: s, head: head };
 }
 
-/**
- * Creates a stone projectile
- */
+// stone projectile
 export function createStone() {
     const stoneGeom = new THREE.SphereGeometry(0.15, 8, 8);
     const stoneMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.8 });

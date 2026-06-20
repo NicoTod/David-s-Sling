@@ -32,7 +32,7 @@ body, html {
 
 #power-meter {
     position: absolute;
-    bottom: 40px;
+    bottom: 72px;
     left: 50%;
     transform: translateX(-50%);
     width: 300px;
@@ -93,19 +93,13 @@ body, html {
     opacity: 0.7;
     font-size: 0.9em;
 }
-/* ============================================================
-   INTRO / START SCREEN
-   Theme: dusk before the battle (a night sky fading into a warm
-   horizon) plus gold accents from an illuminated manuscript.
-   Title in Cinzel (lapidary capitals), body in EB Garamond.
-   Signature element: the verse with a gilded drop cap and rules.
-   ============================================================ */
+/* start screen */
 #intro-overlay {
     position: absolute;
     inset: 0;
     z-index: 50;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     pointer-events: auto;
     padding: 24px;
@@ -119,6 +113,7 @@ body, html {
 }
 
 #intro-card {
+    margin:auto;
     max-width: 600px;
     width: 100%;
     box-sizing: border-box;
@@ -243,6 +238,44 @@ body, html {
     background: #d4af6a;
 }
 
+/* Settings shown directly on the intro card (mirror of the in-game panel). */
+#intro-card .intro-settings {
+    margin: 0 0 26px;
+    padding: 16px 18px;
+    border: 1px solid rgba(212, 175, 106, 0.35);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.22);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 18px;
+}
+#intro-card .intro-settings .rules-heading {
+    grid-column: 1 / -1;
+    margin: 0 0 4px;
+}
+#intro-card .intro-setting {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 0.95rem;
+    color: #e6dcc6;
+    text-shadow: none;
+}
+#intro-card .intro-setting select,
+#intro-card .intro-setting input[type="range"] {
+    width: 100%;
+    accent-color: #d4af6a;
+}
+#intro-card .intro-setting select {
+    padding: 4px 6px;
+    background: rgba(20, 16, 10, 0.9);
+    color: #f0e6d0;
+    border: 1px solid rgba(212, 175, 106, 0.4);
+    border-radius: 4px;
+    font-family: inherit;
+}
+
 #intro-card .rule-key {
     color: #ecd9a8;
     font-weight: 600;
@@ -286,11 +319,7 @@ body, html {
     #begin-button { transition: none; }
 }
 
-/* ============================================================
-   FINAL BOSS (GOLIATH) + VICTORY SCREEN
-   Same gold/dark palette and fonts (Cinzel + EB Garamond) as the
-   intro and game over, for thematic consistency.
-   ============================================================ */
+/* final boss + victory scene */
 #boss-ui {
     display: none; /* shown via JS when Goliath appears */
     position: absolute;
@@ -410,9 +439,18 @@ body, html {
     font-size: 0.9em;
 }
 
-/* ============================================================
-   NARRATIVE BANNER BEFORE GOLIATH (biblical story)
-   ============================================================ */
+/* =narrative banner before Goliath */
+/* Warm sand flash shown during the transition to the Goliath scene. */
+#scene-flash {
+    position: absolute;
+    inset: 0;
+    z-index: 66;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(circle at 50% 42%, #fdf6dc 0%, #ecd7a0 45%, #d9bd86 100%);
+    transition: opacity 0.36s ease;
+}
+
 #boss-intro-overlay {
     display: none; /* shown by startBossPhase via JS */
     position: absolute;
@@ -440,6 +478,18 @@ body, html {
     background: rgba(12, 7, 3, 0.6);
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65), inset 0 0 70px rgba(0, 0, 0, 0.3);
     animation: introRise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.bi-stage {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 8px;
+    font-size: 15px;
+    color: #f0c878;
+    margin: 0 0 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(212, 175, 106, 0.35);
+    text-shadow: 0 0 18px rgba(224, 160, 70, 0.5);
 }
 .bi-eyebrow {
     font-family: 'Cinzel', serif;
@@ -511,4 +561,196 @@ body, html {
     font-size: 14px;
     color: #cbb585;
     opacity: 0.8;
+}
+
+/* On-screen control hints */
+#hint-bar {
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 6px 14px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(212, 175, 106, 0.35);
+    border-radius: 999px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: #e7dcc2;
+    z-index: 30;
+    user-select: none;
+}
+#hint-bar .hint { display: flex; align-items: center; gap: 6px; }
+#hint-bar b {
+    display: inline-block;
+    min-width: 16px;
+    text-align: center;
+    padding: 1px 5px;
+    border: 1px solid rgba(212, 175, 106, 0.6);
+    border-radius: 4px;
+    color: #ecd9a8;
+    background: rgba(212, 175, 106, 0.12);
+    font-weight: 700;
+}
+#mute-btn {
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(212, 175, 106, 0.35);
+    border-radius: 999px;
+    color: #e7dcc2;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 3px 10px;
+    transition: color 0.2s, border-color 0.2s, opacity 0.2s;
+}
+#mute-btn:hover { border-color: rgba(212, 175, 106, 0.7); color: #fff; }
+#mute-btn.muted { color: #b8956a; opacity: 0.7; }
+
+#mute-btn { pointer-events: auto; }
+
+/* Settings panel (volumes, brightness, David's tunic)*/
+#settings-toggle {
+    pointer-events: auto;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(212, 175, 106, 0.35);
+    border-radius: 999px;
+    color: #e7dcc2;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 3px 10px;
+    transition: color 0.2s, border-color 0.2s;
+}
+#settings-toggle:hover { border-color: rgba(212, 175, 106, 0.7); color: #fff; }
+
+#settings-panel {
+    position: fixed;
+    bottom: 58px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 240px;
+    display: none;            /* toggled open by the gear button */
+    flex-direction: column;
+    gap: 11px;
+    padding: 16px 18px;
+    background: rgba(10, 14, 28, 0.92);
+    border: 1px solid rgba(212, 175, 106, 0.45);
+    border-radius: 12px;
+    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.6);
+    font-family: 'Courier New', Courier, monospace;
+    color: #e7dcc2;
+    z-index: 31;
+    pointer-events: auto;
+}
+#settings-panel.open { display: flex; }
+#settings-panel h3 {
+    margin: 0 0 2px;
+    font-family: 'Cinzel', serif;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    color: #ecd9a8;
+    text-align: center;
+}
+#settings-panel label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 12px;
+    color: #cbb585;
+}
+#settings-panel input[type="range"] { width: 100%; accent-color: #d4af6a; cursor: pointer; }
+#settings-panel select {
+    background: rgba(0, 0, 0, 0.4);
+    color: #e7dcc2;
+    border: 1px solid rgba(212, 175, 106, 0.4);
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* ============================================================
+   MOBILE / TOUCH
+   Auto-enabled by main.js via body.touch-mode on touchscreens.
+   ============================================================ */
+
+/* Show/hide instructions depending on input type. */
+.touch-only { display: none; }
+body.touch-mode .touch-only { display: block; }
+body.touch-mode .desktop-only { display: none; }
+body.touch-mode #view-hint { display: none; } /* keyboard hint is useless on touch */
+
+.controls-note {
+    margin: 12px 0 0;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 0.92rem;
+    color: #cbbfa6;
+    text-align: left;
+}
+
+/* The game canvas must not pan/zoom under the aiming gesture. */
+body.touch-mode canvas { touch-action: none; }
+
+/* On-screen touch buttons (Load / View), bottom-right for the thumb. */
+#touch-controls {
+    position: fixed;
+    right: 14px;
+    bottom: 84px;
+    display: none;                 /* shown only in touch mode */
+    flex-direction: column;
+    gap: 12px;
+    z-index: 33;
+    pointer-events: auto;
+}
+body.touch-mode #touch-controls { display: flex; }
+#touch-controls button {
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    border: 2px solid rgba(212, 175, 106, 0.7);
+    background: rgba(10, 14, 28, 0.72);
+    color: #f0e6d0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-family: 'Courier New', Courier, monospace;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+#touch-controls button:active {
+    background: rgba(212, 175, 106, 0.35);
+    transform: scale(0.94);
+}
+#touch-controls .tc-glyph { font-size: 26px; line-height: 1; }
+#touch-controls .tc-label { font-size: 11px; letter-spacing: 0.5px; }
+
+/* Phone-sized screens: shrink the HUD, keep the power bar (left) clear of
+   the touch buttons (right). The intro card already scrolls. */
+@media (max-width: 640px) {
+    #hud h1 { display: none; }                 /* title is on the intro screen */
+    #hud { top: 10px; left: 12px; }
+    #hud p { font-size: 0.85rem; margin: 2px 0; }
+    #health-bar { width: 140px; }
+
+    #controls { top: 10px; right: 12px; font-size: 0.8rem; }
+    #controls label { display: none; }         /* keep the dropdown, drop the word */
+
+    #power-meter {
+        left: 16px;
+        transform: none;                       /* bottom-left, away from touch buttons */
+        width: 52vw;
+        max-width: 260px;
+        bottom: 88px;
+    }
+
+    #hint-bar { gap: 10px; padding: 5px 10px; font-size: 12px; bottom: 10px; }
+
+    #intro-card { padding: 26px 20px 24px; }
+    #boss-intro-card, #victory-card { padding: 24px 20px; }
 }
